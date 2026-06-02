@@ -1,0 +1,33 @@
+﻿ID,Nome_Produto,Categoria,Especificacoes_Tecnicas,Quantidade_Estoque,Nivel_Critico,Fornecedor,Localizacao_Corredor,Preco_Unitario_BRL
+COMP-001,Processador AMD Ryzen 5 5600X,Componentes,"6 Cores, 12 Threads, 3.7GHz (4.6GHz Turbo), Socket AM4, TDP 65W",14,5,TechDistri Brasil S.A.,A-01,899.9
+COMP-002,Placa-Mãe ASUS ROG Strix B550-F,Componentes,"Chipset B550, AMD AM4, ATX, DDR4, PCIe 4.0, Wi-Fi 6",8,3,TechDistri Brasil S.A.,A-02,1249.0
+COMP-003,Memória RAM Kingston Fury Beast 16GB,Componentes,"16GB DDR4, Frequência 3200MHz, CL16, Dissipador de Calor Preto",45,10,Global Components Import,A-03,299.5
+COMP-004,SSD Kingston NV2 1TB M.2 NVMe,Componentes,"Leitura 3500MB/s, Gravação 2100MB/s, PCIe Gen 4x4, Formato 2280",32,8,Global Components Import,A-04,389.9
+COMP-005,Fonte Corsair CV550 550W,Componentes,"550W, Certificação 80 Plus Bronze, Ventoinha de 120mm, Cabeamento Fixo",3,5,Eletronicos Nordeste Ltda,B-01,349.9
+PERI-001,Mouse Logi G PRO X Superlight,Periféricos,"Sem fio, Sensor HERO 25K, 63g, 5 Botões Programáveis, Preto",12,4,Logi distribuidora SP,C-01,699.0
+PERI-002,Teclado Mecânico Redragon Kumara,Periféricos,"Layout ABNT2, Switch Outemu Blue, Iluminação LED Vermelha, TKL",25,6,Eletronicos Nordeste Ltda,C-02,229.9
+PERI-003,Monitor LG UltraGear 24GN600,Periféricos,"24 Polegadas, IPS, Full HD, 144Hz, 1ms, FreeSync Premium",7,3,TechDistri Brasil S.A.,D-01,899.0
+NET-001,Roteador TP-Link Archer AX12,Conectividade,"Wi-Fi 6, Dual Band (AX1500), 4 Antenas Externas, Tecnologia Beamforming",18,5,Cisco & TP Conexões,E-01,279.9
+NET-002,Switch TP-Link TL-SG1008D,Conectividade,"8 Portas RJ45 Gigabit 10/100/1000Mbps, Caixa de Plástico, Desktop",22,5,Cisco & TP Conexões,E-02,139.9
+NET-003,Cabo de Rede Cat6 Nexans 305m,Conectividade,"Cabo UTP, Categoria 6, 4 Pares, Condutor de Cobre Puro, Capa azul",6,2,Cisco & TP Conexões,E-03,749.0
+IOT-001,Placa do Microcontrolador Arduino Uno R3,Microcontroladores e IoT,"ATmega328P, 14 Pinos Digitais I/O, 6 Entradas Analógicas, Conexão USB-B",50,15,Global Components Import,F-01,49.9
+IOT-002,Módulo Computacional Raspberry Pi 4 Model B 4GB,Microcontroladores e IoT,"Processador Quad-core 64-bit @1.5GHz, 4GB LPDDR4 RAM, Dual micro-HDMI",2,5,Global Components Import,F-02,489.0
+IOT-003,Sensor Ultrassônico HC-SR04,Microcontroladores e IoT,"Tensão de Operação 5V, Alcance de Medição 2cm a 400cm, Precisão 3mm",120,20,Maker Brasil Componentes,F-03,9.9
+IOT-004,Módulo NodeMCU ESP8266 ESP-12E,Microcontroladores e IoT,"Conectividade Wi-Fi Integrada, Antena Embutida, Porta Micro-USB",65,15,Maker Brasil Componentes,F-01,24.9
+FERR-001,Ferro de Solda Hikari Plus SC-60,Ferramentas,"Potência 50W, Temperatura Máxima 410°C, Resistência de Mica",15,4,Ferramentas & Cia Regional,G-01,64.9
+FERR-002,Multímetro Digital Minipa ET-1002,Ferramentas,"Display LCD 3.5 Dígitos, Medição de Tensão AC/DC, Corrente DC, Resistência",9,3,Ferramentas & Cia Regional,G-02,89.9
+COMP-006,Placa de Vídeo RTX 4060 Galax Click OC,Componentes,"8GB GDDR6, 128-bit, PCIe 4.0, DLSS 3, Ray Tracing, 1x HDMI, 3x DP",4,2,TechDistri Brasil S.A.,B-02,1899.0
+COMP-007,Gabinete Corsair 4000D Airflow,Componentes,"Mid-Tower, Lateral em Vidro Temperado, Painel Frontal Otimizado, Preto",11,3,Eletronicos Nordeste Ltda,B-03,549.9
+COMP-008,Water Cooler DeepCool LE500,Componentes,"Radiador de 240mm, Ventoinhas de 120mm LED Estático, Compatível com AM4/LGA1700",6,2,Eletronicos Nordeste Ltda,B-04,329.0
+PERI-004,Headset HyperX Cloud Stinger 2,Periféricos,"Drivers de 50mm, Conexão P3/P2, Microfone com Função Mute por Giro",19,5,Logi distribuidora SP,C-03,249.9
+PERI-005,Webcam Logitech C920s Pro HD,Periféricos,"Resolução Full HD 1080p a 30fps, Foco Automático, Tampa de Privacidade",14,4,Logi distribuidora SP,C-04,399.0
+NET-004,Roteador Mikrotik hEX lite RB750r2,Conectividade,"5 Portas Fast Ethernet, CPU 850MHz, 64MB RAM, Sistema RouterOS L4",8,3,Cisco & TP Conexões,E-04,319.0
+NET-005,Placa de Rede PCI Express TP-Link Archer,Conectividade,"Wireless Wi-Fi 6 AX3000, Bluetooth 5.2, Duas Antenas Multidirecionais",16,4,Cisco & TP Conexões,E-01,219.9
+IOT-005,Módulo Relé 5V de 2 Canais,Microcontroladores e IoT,"Controle de Cargas AC 110V/220V, Corrente Máxima 10A, Optoacoplado",85,15,Maker Brasil Componentes,F-04,12.5
+IOT-006,Display Oled 0.96 Polegadas I2C,Microcontroladores e IoT,"Resolução 128x64 Pixels, Monocromático Azul/Amarelo, Comunicação I2C",42,10,Maker Brasil Componentes,F-04,18.9
+IOT-007,Kit Jumpers Macho-Fêmea 40 Peças,Microcontroladores e IoT,"Comprimento de 20cm, Fios Destacáveis, Ideal para Protoboard",150,30,Maker Brasil Componentes,F-03,7.5
+IOT-008,Protoboard 830 Pontos com Barramento,Microcontroladores e IoT,"Placa de Ensaio Transparente, Fita Adesiva Traseira, Encaixável",55,12,Global Components Import,F-02,19.9
+FERR-003,Estação de Solda e Retrabalho Yaxun 881D,Ferramentas,"Soprador de Ar Quente e Ferro de Solda, Analógica, Display Digital de Temp.",5,2,Ferramentas & Cia Regional,G-03,459.0
+FERR-004,Tubo de Estanho para Solda Best 100g,Ferramentas,"Diâmetro 1.0mm, Liga 60/40 com Fluxo interno RA, Peso Líquido 100g",40,10,Ferramentas & Cia Regional,G-01,34.9
+COMP-009,Processador Intel Core i5-12400F,Componentes,"6 Cores, 12 Threads, 2.5GHz (4.4GHz Turbo), LGA1700, TDP 65W",11,4,TechDistri Brasil S.A.,A-01,769.0
+COMP-010,Placa-Mãe MSI MAG B660M Mortar,Componentes,"Chipset B660, Intel LGA1700, Micro-ATX, DDR4, Dual M.2 PCIe 4.0",7,3,TechDistri Brasil S.A.,A-02,949.0
