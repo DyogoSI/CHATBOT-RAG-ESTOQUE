@@ -26,7 +26,7 @@ function App() {
     setCarregando(true);
 
     try {
-      const response = await axios.post("https://backend-estoque-ia.onrender.com", {
+      const response = await axios.post("https://backend-estoque-ia.onrender.com/api/chat", {
         mensagem: textoUsuario
       });
 
