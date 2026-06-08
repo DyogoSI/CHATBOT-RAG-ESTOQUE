@@ -2,6 +2,6 @@ Flask
 flask-cors
 pandas
 chromadb
-google-generativeai
+google-genai
 python-dotenv
 gunicorn
