@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "https://chatbot-rag-estoque.vercel.app"}})
 
 # ==============================================================================
 # CONFIGURAÇÃO DE APIS E BANCO DE DADOS
