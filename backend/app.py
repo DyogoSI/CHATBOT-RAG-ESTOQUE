@@ -1,5 +1,6 @@
 import os
 import traceback
+import threading
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pandas as pd
@@ -31,11 +32,13 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 if not GOOGLE_API_KEY:
     raise ValueError("GOOGLE_API_KEY não encontrada nas variáveis de ambiente.")
 
-# Novo SDK: google-genai
 client = genai.Client(api_key=GOOGLE_API_KEY)
 
 chroma_client = chromadb.PersistentClient(path="./chroma_db_estoque")
 collection = chroma_client.get_or_create_collection(name="eletronicos")
+
+# Flag para indicar se o banco já está pronto
+banco_pronto = False
 
 # ==============================================================================
 # MODELOS
@@ -64,7 +67,7 @@ def get_resposta_llm(prompt):
     return response.text
 
 # ==============================================================================
-# ROTA DE TESTE
+# ROTAS
 # ==============================================================================
 
 @app.route("/", methods=["GET"])
@@ -72,12 +75,9 @@ def home():
     return jsonify({
         "status": "online",
         "mensagem": "Backend Estoque IA funcionando!",
+        "banco_pronto": banco_pronto,
         "registros_chroma": collection.count()
     }), 200
-
-# ==============================================================================
-# ROTA DE DIAGNÓSTICO
-# ==============================================================================
 
 @app.route("/api/debug", methods=["GET"])
 def debug():
@@ -91,6 +91,7 @@ def debug():
         return jsonify({
             "status": "ok",
             "chave_preview": chave_preview,
+            "banco_pronto": banco_pronto,
             "modelos_disponiveis": modelos,
             "registros_chroma": collection.count()
         }), 200
@@ -102,10 +103,11 @@ def debug():
         }), 500
 
 # ==============================================================================
-# FUNÇÃO PARA CARREGAR DADOS E GERAR EMBEDDINGS
+# INICIALIZAÇÃO DO BANCO — roda em background para não bloquear o Gunicorn
 # ==============================================================================
 
 def inicializar_banco_vetorial():
+    global banco_pronto
     try:
         if collection.count() == 0:
             print("Iniciando leitura do CSV e geração de embeddings...")
@@ -139,18 +141,18 @@ def inicializar_banco_vetorial():
 
             print(f"Sucesso! {collection.count()} produtos vetorizados.")
         else:
-            print(f"ChromaDB já possui {collection.count()} registros.")
+            print(f"ChromaDB já possui {collection.count()} registros. Pulando indexação.")
+
+        banco_pronto = True
+        print("Banco vetorial pronto.")
 
     except Exception as e:
         print(f"Erro ao inicializar banco vetorial: {str(e)}")
         print(traceback.format_exc())
 
-# ==============================================================================
-# INICIALIZAÇÃO
-# ==============================================================================
-
-with app.app_context():
-    inicializar_banco_vetorial()
+# Inicia a indexação em thread separada — o Flask sobe imediatamente
+thread_init = threading.Thread(target=inicializar_banco_vetorial, daemon=True)
+thread_init.start()
 
 # ==============================================================================
 # ROTA PRINCIPAL DO CHATBOT (RAG)
@@ -161,6 +163,12 @@ def chat():
 
     if request.method == "OPTIONS":
         return jsonify({"status": "ok"}), 200
+
+    # Aguarda o banco estar pronto antes de responder
+    if not banco_pronto:
+        return jsonify({
+            "erro": "O sistema ainda está inicializando. Aguarde alguns instantes e tente novamente."
+        }), 503
 
     try:
         dados = request.get_json()
@@ -219,9 +227,7 @@ REGRA DE FORMATAÇÃO:
 
         texto_resposta = get_resposta_llm(prompt)
 
-        return jsonify({
-            "resposta": texto_resposta
-        })
+        return jsonify({"resposta": texto_resposta})
 
     except Exception as e:
         print(f"Erro durante o processamento: {str(e)}")
