@@ -437,7 +437,7 @@ export default function App() {
         <aside className="sidebar">
           <div className="sidebar-logo">
             <GeminiIcon />
-            <span>Estoque.AI</span>
+            <span>EstoqueSystem</span>
           </div>
 
           <button className="btn-novo-chat" onClick={() => { setMensagens([]); setIniciado(false); }}>
