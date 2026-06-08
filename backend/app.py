@@ -1,5 +1,4 @@
 import os
-import traceback
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pandas as pd
@@ -8,13 +7,14 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 
 # ==============================================================================
-# CONFIGURAÇÕES
+# CONFIGURAÇÕES INICIAIS
 # ==============================================================================
 
 load_dotenv()
 
 app = Flask(__name__)
 
+# CORS
 CORS(
     app,
     resources={r"/*": {"origins": "*"}},
@@ -22,122 +22,86 @@ CORS(
 )
 
 # ==============================================================================
-# GOOGLE GEMINI
+# CONFIGURAÇÃO DE APIS E BANCO DE DADOS
 # ==============================================================================
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 if not GOOGLE_API_KEY:
-    raise Exception("GOOGLE_API_KEY não encontrada.")
+    raise ValueError("GOOGLE_API_KEY não encontrada nas variáveis de ambiente.")
 
 genai.configure(api_key=GOOGLE_API_KEY)
 
-# ==============================================================================
-# CHROMADB
-# ==============================================================================
-
-try:
-    chroma_client = chromadb.PersistentClient(
-        path="./chroma_db_estoque"
-    )
-
-    collection = chroma_client.get_or_create_collection(
-        name="eletronicos"
-    )
-
-except Exception as e:
-    print(f"Erro ao iniciar ChromaDB: {e}")
-    raise
+chroma_client = chromadb.PersistentClient(path="./chroma_db_estoque")
+collection = chroma_client.get_or_create_collection(name="eletronicos")
 
 # ==============================================================================
-# HOME
+# ROTA DE TESTE
 # ==============================================================================
 
 @app.route("/", methods=["GET"])
 def home():
     return jsonify({
         "status": "online",
-        "mensagem": "Backend Estoque IA funcionando"
-    })
+        "mensagem": "Backend Estoque IA funcionando!"
+    }), 200
 
 # ==============================================================================
-# STATUS
-# ==============================================================================
-
-@app.route("/api/status", methods=["GET"])
-def status():
-
-    try:
-
-        return jsonify({
-            "status": "ok",
-            "produtos": collection.count()
-        })
-
-    except Exception as e:
-
-        return jsonify({
-            "status": "erro",
-            "mensagem": str(e)
-        }), 500
-
-# ==============================================================================
-# CARREGAR DADOS
+# FUNÇÃO PARA CARREGAR DADOS E GERAR EMBEDDINGS
 # ==============================================================================
 
 def inicializar_banco_vetorial():
-
     try:
+        if collection.count() == 0:
 
-        total = collection.count()
+            print("Iniciando leitura do CSV e geração de embeddings...")
 
-        if total > 0:
-            print(f"Banco já carregado ({total} registros).")
-            return
+            df = pd.read_csv("inventario_eletronicos.csv")
 
-        print("Iniciando vetorização...")
+            for _, row in df.iterrows():
 
-        if not os.path.exists("inventario_eletronicos.csv"):
-            print("Arquivo inventario_eletronicos.csv não encontrado.")
-            return
+                texto_documento = (
+                    f"ID: {row['ID']} | "
+                    f"Produto: {row['Nome_Produto']} | "
+                    f"Categoria: {row['Categoria']} | "
+                    f"Especificações: {row['Especificacoes_Tecnicas']} | "
+                    f"Quantidade em Estoque: {row['Quantidade_Estoque']} | "
+                    f"Nível Crítico: {row['Nivel_Critico']} | "
+                    f"Preço: R${row['Preco_Unitario_BRL']} | "
+                    f"Localização: {row['Localizacao_Corredor']} | "
+                    f"Fornecedor: {row['Fornecedor']}"
+                )
 
-        df = pd.read_csv("inventario_eletronicos.csv")
+                # FIX: modelo de embedding atualizado
+                embedding_response = genai.embed_content(
+                    model="models/text-embedding-004",
+                    content=texto_documento,
+                    task_type="retrieval_document"
+                )
 
-        for _, row in df.iterrows():
+                vetor = embedding_response["embedding"]
 
-            texto_documento = (
-                f"ID: {row['ID']} | "
-                f"Produto: {row['Nome_Produto']} | "
-                f"Categoria: {row['Categoria']} | "
-                f"Especificações: {row['Especificacoes_Tecnicas']} | "
-                f"Quantidade em Estoque: {row['Quantidade_Estoque']} | "
-                f"Nível Crítico: {row['Nivel_Critico']} | "
-                f"Preço: R${row['Preco_Unitario_BRL']} | "
-                f"Localização: {row['Localizacao_Corredor']} | "
-                f"Fornecedor: {row['Fornecedor']}"
+                collection.add(
+                    documents=[texto_documento],
+                    embeddings=[vetor],
+                    metadatas=[{
+                        "id_produto": str(row["ID"]),
+                        "categoria": row["Categoria"]
+                    }],
+                    ids=[str(row["ID"])]
+                )
+
+            print(
+                f"Sucesso! {collection.count()} produtos foram vetorizados."
             )
 
-            embedding = genai.embed_content(
-                model="models/gemini-embedding-001",
-                content=texto_documento,
-                task_type="retrieval_document"
+        else:
+            print(
+                f"ChromaDB já possui {collection.count()} registros."
             )
 
-            collection.add(
-                documents=[texto_documento],
-                embeddings=[embedding["embedding"]],
-                metadatas=[{
-                    "id_produto": str(row["ID"])
-                }],
-                ids=[str(row["ID"])]
-            )
-
-        print(
-            f"Vetorização concluída. Total: {collection.count()} produtos."
-        )
-
-    except Exception:
-        traceback.print_exc()
+    except Exception as e:
+        print(f"Erro ao inicializar banco vetorial: {str(e)}")
 
 # ==============================================================================
 # INICIALIZAÇÃO
@@ -147,103 +111,101 @@ with app.app_context():
     inicializar_banco_vetorial()
 
 # ==============================================================================
-# CHAT
+# ROTA PRINCIPAL DO CHATBOT (RAG)
 # ==============================================================================
 
 @app.route("/api/chat", methods=["POST", "OPTIONS"])
 def chat():
 
+    # Responde ao preflight do navegador
     if request.method == "OPTIONS":
         return jsonify({"status": "ok"}), 200
 
     try:
 
-        dados = request.get_json(silent=True)
+        dados = request.get_json()
 
         if not dados:
             return jsonify({
-                "erro": "JSON inválido"
+                "erro": "Nenhum JSON enviado"
             }), 400
 
         pergunta_usuario = dados.get("mensagem")
 
         if not pergunta_usuario:
             return jsonify({
-                "erro": "Mensagem não enviada"
+                "erro": "Nenhuma mensagem fornecida"
             }), 400
 
         # ==========================================================
-        # EMBEDDING DA PERGUNTA
+        # RETRIEVE
         # ==========================================================
 
-        query_embedding = genai.embed_content(
-            model="models/gemini-embedding-001",
+        # FIX: mesmo modelo de embedding usado no indexing
+        query_embedding_response = genai.embed_content(
+            model="models/text-embedding-004",
             content=pergunta_usuario,
             task_type="retrieval_query"
         )
 
-        # ==========================================================
-        # CONSULTA CHROMADB
-        # ==========================================================
+        query_embedding = query_embedding_response["embedding"]
 
-        resultados = collection.query(
-            query_embeddings=[
-                query_embedding["embedding"]
-            ],
+        resultados_busca = collection.query(
+            query_embeddings=[query_embedding],
             n_results=3
         )
 
-        documentos = resultados.get("documents", [])
-
-        if not documentos or not documentos[0]:
-
-            return jsonify({
-                "resposta": "Nenhum produto relacionado foi encontrado."
-            })
-
-        contexto = "\n".join(documentos[0])
+        contexto_recuperado = "\n".join(
+            resultados_busca["documents"][0]
+        )
 
         # ==========================================================
-        # PROMPT
+        # AUGMENT
         # ==========================================================
 
         prompt = f"""
-Você é um assistente virtual especializado em estoque de eletrônicos.
+Você é o assistente virtual do sistema de gestão de estoque de eletrônicos.
 
-Responda apenas usando as informações presentes no contexto.
+Seja prestativo, profissional e objetivo.
 
-Caso não encontre a informação, diga que ela não está disponível.
+Responda EXCLUSIVAMENTE com base nas informações do contexto.
 
-CONTEXTO:
-{contexto}
+Caso a informação não esteja disponível, informe que não possui essa informação no momento.
 
-PERGUNTA:
+REGRA DE FORMATAÇÃO:
+- Sempre utilize bullet points quando listar produtos.
+- Coloque o nome do produto em negrito.
+- Seja direto e organizado.
+
+[CONTEXTO]
+{contexto_recuperado}
+
+[PERGUNTA]
 {pergunta_usuario}
+
+[RESPOSTA]
 """
 
         # ==========================================================
-        # GEMINI
+        # GENERATE
+        # FIX: modelo atualizado de gemini-2.5-flash para gemini-2.0-flash
         # ==========================================================
 
         model = genai.GenerativeModel(
-            "gemini-1.5-flash"
+            "gemini-2.0-flash"
         )
 
-        resposta = model.generate_content(prompt)
-
-        texto = getattr(
-            resposta,
-            "text",
-            "Não foi possível gerar resposta."
-        )
+        resposta_llm = model.generate_content(prompt)
 
         return jsonify({
-            "resposta": texto
+            "resposta": resposta_llm.text
         })
 
     except Exception as e:
 
-        traceback.print_exc()
+        import traceback
+        print(f"Erro durante o processamento: {str(e)}")
+        print(traceback.format_exc())
 
         return jsonify({
             "erro": str(e)
@@ -255,9 +217,7 @@ PERGUNTA:
 
 if __name__ == "__main__":
 
-    port = int(
-        os.environ.get("PORT", 5000)
-    )
+    port = int(os.environ.get("PORT", 5000))
 
     app.run(
         host="0.0.0.0",
